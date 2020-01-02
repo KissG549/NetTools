@@ -18,7 +18,7 @@ __interface_output = """sw-01>show int status
  Port      Name               Status       Vlan       Duplex  Speed Type
  Fa0/1                        notconnect   119          auto   auto 10/100BaseTX
  Fa0/2                        connected    119        a-full  a-100 10/100BaseTX
- Fa0/3     Multifunktions-ATG connected    118        a-full  a-100 10/100BaseTX
+ Fa0/3                        connected    118        a-full  a-100 10/100BaseTX
  Fa0/4                        notconnect   119          auto   auto 10/100BaseTX
  Fa0/5                        connected    119        a-full  a-100 10/100BaseTX
  Fa0/6                        notconnect   119          auto   auto 10/100BaseTX
@@ -35,13 +35,13 @@ __interface_output = """sw-01>show int status
  Fa0/17                       notconnect   119          auto   auto 10/100BaseTX
  Fa0/18                       notconnect   119          auto   auto 10/100BaseTX
  Fa0/19                       notconnect   119          auto   auto 10/100BaseTX
- Fa0/20    ISK Gantner Zutrit connected    119        a-full  a-100 10/100BaseTX
+ Fa0/20                       connected    119        a-full  a-100 10/100BaseTX
  Fa0/21                       connected    119        a-full  a-100 10/100BaseTX
  Fa0/22                       connected    119        a-full  a-100 10/100BaseTX
  Fa0/23                       notconnect   119          auto   auto 10/100BaseTX
  Fa0/24                       connected    119        a-full  a-100 10/100BaseTX
  Fa0/25                       connected    119        a-full  a-100 10/100BaseTX
- Fa0/26    Port disabled - LA disabled     119          auto   auto 10/100BaseTX
+ Fa0/26    Port disabled -    disabled     119          auto   auto 10/100BaseTX
  Fa0/27                       notconnect   119          auto   auto 10/100BaseTX
  Fa0/28                       connected    119        a-full  a-100 10/100BaseTX
  Fa0/29                       connected    119        a-full  a-100 10/100BaseTX
@@ -63,9 +63,9 @@ __interface_output = """sw-01>show int status
  Fa0/45                       connected    119        a-full  a-100 10/100BaseTX
  Fa0/46                       notconnect   119          auto   auto 10/100BaseTX
  Fa0/47    Port disabled - LA disabled     116          auto   auto 10/100BaseTX
- Fa0/48    IP Zutrittstermina connected    116        a-full   a-10 10/100BaseTX
- Gi0/1     ATGUNNH120001 Upli connected    trunk      a-full  a-100 10/100/1000BaseTX SFP
- Gi0/2     ATGUNNH120002 Upli notconnect   1            auto   auto 10/100/1000BaseTX SFP
+ Fa0/48                       connected    116        a-full   a-10 10/100BaseTX
+ Gi0/1                        connected    trunk      a-full  a-100 10/100/1000BaseTX SFP
+ Gi0/2                        notconnect   1            auto   auto 10/100/1000BaseTX SFP
  Gi0/3                        notconnect   1            auto   auto Not Present
  Gi0/4                        notconnect   1            auto   auto Not Present
  sw-01>"""
