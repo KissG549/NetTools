@@ -1,0 +1,350 @@
+#!/usr/bin/expect -f
+ 
+# Set variables
+ set OK 0
+ set ERR_TIMEOUT 10
+ set ERR_CONNFAIL 20
+ set ERR_CONNREFUSED 25
+ set ERR_PASSWD 30
+ set ERR_WRONG_TERMINAL 40
+
+ set SSH_TIMEOUT 60
+ set TELNET_TIMEOUT 60
+ set it 0
+ set failed_login 0
+ set max_failed_login 0
+ set failed_auth 0
+ set max_failed_auth 4
+ set hostname [lindex $argv 0]
+ set username -----
+ set localusername bt_dpdhleto_rw
+ set password [lindex $argv 1]
+ set enablepassword [lindex $argv 2]
+ set localpassword [lindex $argv 3]
+ set iplist [list 1.1.1.1 1.1.1.2 ]
+
+
+# Log results
+ log_file -a results.log
+# Don't check keys
+ spawn ssh -o StrictHostKeyChecking=no $username\@$hostname	
+# Timeout
+ set timeout $SSH_TIMEOUT
+ 
+
+proc my_commands {	ip } {
+ 
+global OK
+global ERR_TIMEOUT
+global ERR_CONNFAIL
+global ERR_CONNREFUSED
+global ERR_PASSWD
+global ERR_WRONG_TERMINAL
+
+	expect { 
+			"dhle-sw-*>" {
+				send "term leng 0\r"
+				} 
+				# END term leng
+			"dhle-r-*>" {
+				send_user "\n!1st Router promt, nothing to do $ip \n"
+				return $ERR_WRONG_TERMINAL
+			}
+			# END router prompt
+	} 
+	# END expect
+	expect { 
+			"dhle-sw-*>" {
+			send "sh inv\n"
+			} 
+			# END  > show inv
+			"dhle-r-*>" {
+				send_user "\n!2nd Router promt, nothing to do $ip \n"
+				return $ERR_WRONG_TERMINAL
+			}
+			# END router prompt
+	} 
+	# END expect
+	expect { 
+			"dhle-sw-*>" {
+				send "sh vtp status | i Domain|Operating\n"
+			} 
+			# END  > sh ver
+			"dhle-r-*>" {
+				send_user "\n!3rd Router promt, nothing to do $ip \n"
+				return $ERR_WRONG_TERMINAL
+			}
+			# END router prompt
+	} 
+	# END expect
+	expect {
+			"dhle-sw-*>" {
+				send "exit\n"
+		} 
+		# END  > exit
+	} 
+	# END expect
+	return $OK;
+} 
+# END commands
+
+# define function for telnet connection
+proc my_telnet_login { ip user pass args } {
+
+global OK
+global ERR_TIMEOUT
+global ERR_CONNFAIL
+global ERR_CONNREFUSED
+global ERR_PASSWD
+global ERR_WRONG_TERMINAL
+global SSH_TIMEOUT
+global TELNET_TIMEOUT
+ # set timeout
+	set timeout $TELNET_TIMEOUT
+
+	send "\n";
+	expect {
+	# END SSH expect
+		"dhle-sw-*" {
+			return $ERR_WRONG_TERMINAL
+		}
+		"dhle-r-*>"	{ 
+				send "telnet $ip\r";
+				
+				## LOGIN via telnet
+				expect {
+					timeout {
+						send_user "\n!Timeout Exceeded - Check Host\n"
+						return $ERR_TIMEOUT
+					} 
+					# end timeout
+					eof { 
+						send_user "\nSSH Connection To $hostname Failed\n"
+						return $ERR_CONNFAIL
+					}
+					# END EOF
+					# END EOF
+					"*refused*" {
+						send_user "\n!Remote host refused the connection: $ip \n"
+						return $ERR_CONNREFUSED
+					}
+					"*User:*" {
+						send_user "\n!Not an expected standard input, so next please: $ip \n"
+						return $ERR_WRONG_TERMINAL
+					}
+					"*sername:*" {
+						send "$user\n";
+						expect {
+							"*assword:" {
+								send "$pass\n"
+								expect {
+									"*sername:*:" {
+										send_user "\n!Asked twice for username, quit: $ip \n"
+										send \x03
+									return $ERR_PASSWD
+									} 
+									# END second password
+								} 
+								# END expect
+							}
+							# END password
+						}
+						# END expect
+					} 
+					# END username
+				}
+				# END LOGIN via telnet
+		}
+		# END router prompt
+	}
+	# END expect
+return $OK
+} 
+# END telnet function 
+
+proc my_ssh_login { ip user pass args } {
+
+global OK
+global ERR_TIMEOUT
+global ERR_CONNFAIL
+global ERR_CONNREFUSED
+global ERR_PASSWD
+global ERR_WRONG_TERMINAL
+global SSH_TIMEOUT
+global TELNET_TIMEOUT
+
+	send "\n";
+	expect {
+		# END SSH expect
+		"dhle-sw-*" {
+			return $ERR_WRONG_TERMINAL
+		}
+		"dhle-r-*>"	{ 
+			send "ssh -l $user $ip\r";
+			
+			## LOGIN via SSH
+			expect {
+				timeout {
+					send_user "\n!Timeout Exceeded - Check Host $ip\n";
+					return $ERR_TIMEOUT
+				} 
+				# end timeout
+				eof { 
+					send_user "\nSSH Connection To $ip Failed\n"; 
+					return $ERR_CONNFAIL
+				}
+				# END EOF
+				"*refused*" {
+					send_user "\n!Remote host refused the connection: $ip \n";
+					return $ERR_CONNREFUSED
+				} 
+				#end refused
+				"*User:*" {
+						send_user "\n!Unexpected output, next: (Current IP) $ip \n"
+						return $ERR_WRONG_TERMINAL
+					}
+				"*assword:" {
+					send "$pass\n";
+					expect {
+							"*assword:" {
+							send_user "\n!Asked twice for password, next: (Current IP) $ip \n";
+							send \x03
+						return $ERR_PASSWD
+						} 
+						# END second password
+					} 
+					# END expect
+				} 
+				# END password
+			}
+			# END LOGIN via SSH
+		}
+	} 
+	
+#	send_user "\n!Calling my_commands: $ip \n";
+#	send "\n";
+#	my_commands $ip
+	# END router ssh prompt
+#	send "\n";
+#	send_user "\n!Returning my_commands: $ip \n";
+return $OK;
+}
+# END SSH function
+ # Allow this script to handle ssh connection issues
+ # connect to jumphost
+ expect {
+	 timeout { 
+				send_user "\nTimeout Exceeded - Check Host\n"; 
+				exit $ERR_TIMEOUT
+	}
+	 eof { 
+			send_user "\nSSH Connection To $hostname Failed\n"; 
+			exit $ERR_TIMEOUT 
+	}
+	 "*#" {}
+	 "*assword:" {
+		send "$password\n"
+	 }
+ }
+ 
+# If we're not already in enable mode, get us there
+# expect {
+#  default { send_user "\nEnable Mode Failed - Check Password\n"; exit 1 }
+
+send_user "!Start_time_is: [ clock format $systemTime -format %H:%M:%S ] \n"
+
+ foreach ip $iplist {
+		#send_user "\n!Iterator: $it \n";
+		incr it;
+		set ret -1
+		
+		send_user "\n!Starting foreach: $ip \n"
+		# Try with ssh and ACS credentials
+		set ret [ my_ssh_login $ip $username $password ]
+		
+		if { $ret != $OK } {
+			send_user "\n!Can't connect with SSH and ACS user, try with local credentials: $ip \n"
+			
+			if { $ret != $OK } {
+			# IF username and pass fails, try with local credentials
+				set ret [ my_ssh_login $ip $localusername $localpassword ]
+				
+				if { $ret != $OK } {
+					send_user "\n!Can't connect with SSH and local user, try with TELNET and ACS user: $ip \n"
+					set ret [ my_telnet_login $ip $username $password ]
+					
+					if { $ret == $ERR_PASSWD } {
+					    send_user "\n!Can't connect with TELNET and ACS user, try with TELNET local user credentials: $ip \n"
+						set ret [ my_telnet_login $ip $localusername $localpassword ]
+						
+						if { $ret != $OK } {
+							continue
+						} 
+						# END RET!=OK
+					}
+					# END $ret == $ERR_PASSWD
+				}
+				# END RET!=OK
+			}
+			# $ret == $ERR_PASSWD
+		}
+		# END RET!=OK
+		
+		set timeout 5
+		
+		expect { 
+			"dhle-sw-*>" {
+				send "term leng 0\r"
+				} 
+				# END term leng
+			"dhle-r-*>" {
+				send_user "\n!1st Router promt, nothing to do $ip \n"
+				continue
+			}
+			# END router prompt
+		} 
+		# END expect
+		expect { 
+				"dhle-sw-*>" {
+				send "sh inv\n"
+				} 
+				# END  > show inv
+				"dhle-r-*>" {
+					send_user "\n!2nd Router promt, nothing to do $ip \n"
+					continue
+				}
+				# END router prompt
+		} 
+		# END expect
+		expect { 
+				"dhle-sw-*>" {
+					send "sh cdp neig\n"
+				} 
+				# END  > sh ver
+				"dhle-r-*>" {
+					send_user "\n!3rd Router promt, nothing to do $ip \n"
+					continue
+				}
+				# END router prompt
+		} 
+		# END expect
+		expect {
+				"dhle-sw-*>" {
+					send "exit\n"
+			} 
+		# END  > exit
+		} 
+		
+		
+		
+		send_user "\n!End foreach: $ip \n"		
+		
+		
+		
+		
+		
+		
+		
+		
+} 
+# END FOREACH

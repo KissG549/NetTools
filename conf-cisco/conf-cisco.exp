@@ -1,0 +1,52 @@
+#!/usr/bin/expect -f
+ 
+# Set variables
+ set hostname [lindex $argv 0]
+ set username ------
+ set password [lindex $argv 1]
+ set enablepassword [lindex $argv 2]
+ set iplist [list 1.1.1.1 1.1.1.2 ]
+
+# Log results
+ log_file -a results.log
+# Don't check keys
+ spawn ssh -o StrictHostKeyChecking=no $username\@$hostname	
+
+ # Allow this script to handle ssh connection issues
+ expect {
+	 timeout { 
+				send_user "\nTimeout Exceeded - Check Host\n"; 
+				exit 1 
+	}
+	 eof { 
+			send_user "\nSSH Connection To $hostname Failed\n"; 
+			exit 1 
+	}
+	 "*#" {}
+	 "*assword:" {
+		send "$password\n"
+	 }
+ }
+ 
+# If we're not already in enable mode, get us there
+# expect {
+#  default { send_user "\nEnable Mode Failed - Check Password\n"; exit 1 }
+
+#  "*>" {
+ foreach ip $iplist {
+    expect ">"
+    send "ssh $ip\r"
+    expect "*assword:"
+    send "$password\n"
+    expect ">"
+    send "term leng 0\r"
+    expect ">"
+    send "sh inv\n"
+    expect ">"
+    send "sh ver | i IOS\n"
+    expect ">"
+    send "exit\n"
+}
+
+ 
+
