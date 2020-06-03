@@ -10,6 +10,7 @@ Network Tools
   
     Collects informations from network devices. 
     
-    The reason of these projects was to learn and practice Python programming. There are better tools in the market, like Ansible, so if you would like to use in production environment please prefer other tools!
+    The reason of these projects was to learn and practice Python programming.
+    !!! If you would like to use in production environment, please don't! Prefer official network automation tools instead, like Ansible!!!
     
     
