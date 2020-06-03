@@ -2,7 +2,7 @@
 
 if [ $# -eq 0 ]
 then
-	echo "Használat: ./convert_for_dhcp input_file output_file\n";
+	echo "Usage: ./convert_for_dhcp input_file output_file\n";
 exit;
 fi
 
