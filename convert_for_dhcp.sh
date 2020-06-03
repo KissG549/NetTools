@@ -2,14 +2,14 @@
 
 if [ $# -eq 0 ]
 then
-	echo "Használat: ./convert_for_dhcp bementi_fájl kimeneti_fájl\n";
+	echo "Használat: ./convert_for_dhcp input_file output_file\n";
 exit;
 fi
 
 INPUT_FILE=$1;
 OUTPUT_FILE=$2;
-echo "Bemeneti fájl: "  $INPUT_FILE;
-echo "Kimeneti fájl: "  $OUTPUT_FILE;
+echo "Input filename: "  $INPUT_FILE;
+echo "Output filename: "  $OUTPUT_FILE;
 
 
 while read -r a b c
