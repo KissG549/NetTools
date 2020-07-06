@@ -1,6 +1,8 @@
 # NetTools
 Network Tools
 
+The reason of these projects was to learn and practice Python programming.
+Created for fun and learn Python, not recommended to use in production!!! It worked well in my environment, however there is no guarantee that this will work in yours too! Don't be stupid, use official network automation tools, like Ansible!
 
  - convert_for_dhcp.sh
   
@@ -9,8 +11,4 @@ Network Tools
  - conf-cisco and customer_script
   
     Collects informations from network devices. 
-    
-    The reason of these projects was to learn and practice Python programming.
-    !!! If you would like to use in production environment, please don't! Prefer official network automation tools instead, like Ansible!!!
-    
     
